@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Heart, 
   Search, 
@@ -9,7 +9,11 @@ import {
   Clock, 
   Zap, 
   MoreHorizontal,
-  ArrowUpRight 
+  ArrowUpRight,
+  Home,
+  User,
+  X,
+  Monitor
 } from 'lucide-react';
 
 /* --- MOCK DATA --- */
@@ -26,37 +30,38 @@ export default function DiscoverPage() {
   const [activeFilter, setActiveFilter] = useState('Trending');
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-teal-400 selection:text-black">
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-teal-400 selection:text-black pb-24 md:pb-0">
       
-      {/* --- INJECT FONTS (Copying from Landing to ensure consistency) --- */}
+      {/* --- INJECT FONTS --- */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap');
         .font-syne { font-family: 'Syne', sans-serif; }
+        
+        /* Hide scrollbar for top filters on mobile */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* --- SIDEBAR (Fixed) --- */}
-      <aside className="fixed left-0 top-0 bottom-0 w-20 md:w-64 border-r border-white/5 bg-[#050505] flex flex-col z-20">
-        
-        {/* Logo Area */}
-        <div className="h-24 flex items-center px-6 md:px-8">
+      {/* --- MOBILE WARNING BANNER --- */}
+      <MobileWarning />
+
+      {/* --- DESKTOP SIDEBAR (Hidden on Mobile) --- */}
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 border-r border-white/5 bg-[#050505] flex-col z-20">
+        <div className="h-24 flex items-center px-8">
            <a href="/" className="flex items-center gap-3 font-syne font-bold text-xl tracking-tight hover:opacity-80 transition-opacity">
              <div className="w-6 h-6 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full" />
-             <span className="hidden md:block">SwagClub</span>
+             <span>SwagClub</span>
            </a>
         </div>
-
-        {/* Navigation Links */}
         <div className="flex-1 py-8 px-4 space-y-2">
           <NavItem icon={<TrendingUp />} label="Trending" active={activeFilter === 'Trending'} onClick={() => setActiveFilter('Trending')} />
           <NavItem icon={<Clock />} label="New Arrivals" active={activeFilter === 'New'} onClick={() => setActiveFilter('New')} />
           <NavItem icon={<Zap />} label="Curated" active={activeFilter === 'Curated'} onClick={() => setActiveFilter('Curated')} />
         </div>
-
-        {/* User Mini Profile */}
         <div className="p-6 border-t border-white/5">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500" />
-            <div className="hidden md:block">
+            <div>
               <p className="text-sm font-bold">@Intern</p>
               <p className="text-xs text-neutral-500">0x84...92a</p>
             </div>
@@ -65,44 +70,105 @@ export default function DiscoverPage() {
       </aside>
 
       {/* --- MAIN CONTENT AREA --- */}
-      <main className="pl-20 md:pl-64 min-h-screen">
+      {/* On mobile: padding-left is 0. On Desktop: padding-left is 64 (width of sidebar) */}
+      <main className="pl-0 md:pl-64 min-h-screen">
         
-        {/* Header / Search Bar */}
-        <header className="sticky top-0 z-10 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-8 h-24 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-syne font-bold hidden md:block">{activeFilter}</h1>
+        {/* HEADER: Search & Mobile Filters */}
+        <header className="sticky top-0 z-10 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-4 md:px-8 py-4 md:h-24 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          
+          {/* Mobile Logo Row */}
+          <div className="md:hidden flex items-center justify-between mb-2">
+             <a href="/" className="flex items-center gap-2 font-syne font-bold text-lg">
+                <div className="w-5 h-5 bg-teal-400 rounded-full" /> SwagClub
+             </a>
+             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500" />
           </div>
 
-          <div className="flex-1 max-w-md mx-6 relative group">
+          {/* Search Bar */}
+          <div className="w-full md:max-w-md relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-teal-400 transition-colors" />
             <input 
               type="text" 
-              placeholder="Search artists or collection..." 
+              placeholder="Search..." 
               className="w-full bg-white/5 border border-white/5 rounded-full py-3 pl-12 pr-4 text-sm focus:bg-white/10 focus:border-teal-400/50 outline-none transition-all"
             />
           </div>
 
-          <button className="p-3 rounded-full border border-white/10 hover:bg-white/5 transition-colors">
+          {/* Mobile Horizontal Filters (Scrollable) */}
+          <div className="md:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+             <MobileFilterPill label="Trending" active={activeFilter === 'Trending'} onClick={() => setActiveFilter('Trending')} />
+             <MobileFilterPill label="New" active={activeFilter === 'New'} onClick={() => setActiveFilter('New')} />
+             <MobileFilterPill label="Curated" active={activeFilter === 'Curated'} onClick={() => setActiveFilter('Curated')} />
+             <MobileFilterPill label="Blue Chips" active={false} onClick={() => {}} />
+          </div>
+
+          <button className="hidden md:block p-3 rounded-full border border-white/10 hover:bg-white/5 transition-colors">
             <Filter className="w-4 h-4" />
           </button>
         </header>
 
-        {/* --- ART GRID (Masonry Vibe) --- */}
-        <div className="p-8">
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-            
+        {/* --- ART GRID --- */}
+        <div className="p-4 md:p-8">
+          {/* Mobile: 1 Column. Tablet: 2. Desktop: 3 */}
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
             {MOCK_ARTS.map((art) => (
               <ArtCard key={art.id} art={art} />
             ))}
-
           </div>
         </div>
       </main>
+
+      {/* --- MOBILE BOTTOM NAVIGATION (Fixed) --- */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-[#050505]/90 backdrop-blur-lg border-t border-white/10 flex items-center justify-around z-50 px-2 pb-2">
+        <MobileNavLink icon={<Home />} label="Home" href="/" />
+        <MobileNavLink icon={<Search />} label="Discover" active href="/discover" />
+        <div className="relative -top-6">
+            <button className="w-14 h-14 rounded-full bg-teal-400 text-black flex items-center justify-center shadow-[0_0_20px_rgba(45,212,191,0.4)]">
+                <ArrowUpRight className="w-6 h-6" />
+            </button>
+        </div>
+        <MobileNavLink icon={<Heart />} label="Likes" href="#" />
+        <MobileNavLink icon={<User />} label="Profile" href="#" />
+      </div>
+
     </div>
   );
 }
 
-// --- SUB-COMPONENTS ---
+/* --- COMPONENTS --- */
+
+// The Warning Banner
+function MobileWarning() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    // Only show on screens smaller than 768px (Mobile)
+    if (window.innerWidth < 768) {
+      setVisible(true);
+    }
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-blue-900 to-purple-900 text-white px-4 py-3 shadow-xl animate-in slide-in-from-top duration-500">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/10 rounded-full">
+                <Monitor className="w-4 h-4 text-teal-300" />
+            </div>
+            <div>
+                <p className="text-xs font-bold text-teal-300 uppercase tracking-wider">Pro Tip</p>
+                <p className="text-sm font-medium leading-tight">For the best SwagClub experience, switch to Desktop.</p>
+            </div>
+        </div>
+        <button onClick={() => setVisible(false)} className="text-white/50 hover:text-white">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function NavItem({ icon, label, active, onClick }: any) {
   return (
@@ -111,10 +177,34 @@ function NavItem({ icon, label, active, onClick }: any) {
       className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${active ? 'bg-teal-400/10 text-teal-400' : 'text-neutral-500 hover:text-white hover:bg-white/5'}`}
     >
       {React.cloneElement(icon, { className: "w-5 h-5" })}
-      <span className="hidden md:block font-medium">{label}</span>
-      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-400 hidden md:block" />}
+      <span className="font-medium">{label}</span>
+      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-400" />}
     </button>
   );
+}
+
+function MobileFilterPill({ label, active, onClick }: any) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`whitespace-nowrap px-5 py-2 rounded-full text-xs font-bold border transition-all ${
+        active 
+          ? 'bg-white text-black border-white' 
+          : 'bg-transparent text-neutral-400 border-white/10 hover:border-white/30'
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
+
+function MobileNavLink({ icon, label, active, href }: any) {
+    return (
+        <a href={href} className={`flex flex-col items-center gap-1 p-2 ${active ? 'text-teal-400' : 'text-neutral-500'}`}>
+            {React.cloneElement(icon, { className: "w-6 h-6" })}
+            <span className="text-[10px] font-medium">{label}</span>
+        </a>
+    )
 }
 
 function ArtCard({ art }: any) {
@@ -128,20 +218,14 @@ function ArtCard({ art }: any) {
 
   return (
     <div className="break-inside-avoid relative group rounded-2xl overflow-hidden bg-neutral-900 border border-white/5 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-900/10">
-      
-      {/* Image */}
       <div className={`w-full ${art.height} relative`}>
         <img src={art.img} alt={art.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-        
-        {/* Overlay Buttons (Show on Hover) */}
         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
            <button className="p-2 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-black transition-colors">
              <MoreHorizontal className="w-4 h-4" />
            </button>
         </div>
       </div>
-
-      {/* Content */}
       <div className="p-5">
         <div className="flex justify-between items-start mb-4">
           <div>
@@ -153,11 +237,7 @@ function ArtCard({ art }: any) {
             <span className="block font-bold text-teal-400">{art.price}</span>
           </div>
         </div>
-
-        {/* Action Bar */}
         <div className="flex items-center justify-between pt-4 border-t border-white/5">
-          
-          {/* Upvote Button */}
           <button 
             onClick={toggleLike}
             className={`flex items-center gap-2 text-sm font-medium transition-colors ${liked ? 'text-pink-500' : 'text-neutral-400 hover:text-white'}`}
@@ -165,8 +245,6 @@ function ArtCard({ art }: any) {
             <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
             <span>{likesCount}</span>
           </button>
-
-          {/* Bid Button */}
           <button className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-teal-400 transition-colors">
             Place Bid
             <ArrowUpRight className="w-3 h-3" />
