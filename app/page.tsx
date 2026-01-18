@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { ArrowRight, Twitter, X, Moon, Sun, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowRight, Twitter, X, Moon, Sun, Sparkles, Loader2, FileText, ChevronRight } from 'lucide-react';
 
 /* --- CONFIGURATION --- */
 const ART_IMAGES = [
@@ -17,70 +17,86 @@ const ART_IMAGES = [
   "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=400&auto=format&fit=crop",
 ];
 
+// Content for the Whitepaper Modal
+const WHITEPAPER_CONTENT = `
+## SwagClub Whitepaper (v1.0)
+
+**1. The Vision**
+SwagClub is not just a marketplace; it is a cultural movement on the Base Network. We believe that art should be fun, accessible, and community-driven.
+
+**2. Tokenomics**
+Our governance token ($SWAG) allows holders to curate the front page. No algorithmic feeds—just pure community vibes.
+
+**3. Roadmap**
+- Q1: Platform Launch & Creator Onboarding
+- Q2: Community Governance & Voting
+- Q3: Mobile App & AR Integration
+
+**4. Technology**
+Built on Next.js, powered by Base, and secured by Ethereum.
+`;
+
 export default function SwagClubLanding() {
+  // Application Form State
   const [isApplyOpen, setIsApplyOpen] = useState(false);
-  const [xUrl, setXUrl] = useState('');
-  const [isDark, setIsDark] = useState(true); // Default to dark for "dim" look
-  
-  // New: Loading state for API calls
+  const [applyStep, setApplyStep] = useState(1);
+  const [formData, setFormData] = useState({ inspiration: '', reason: '', twitter: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Whitepaper State
+  const [isWhitepaperOpen, setIsWhitepaperOpen] = useState(false);
+
+  // Theme State
+  const [isDark, setIsDark] = useState(true);
 
   const toggleTheme = () => setIsDark(!isDark);
 
+  // --- FORM HANDLERS ---
+  const handleNextStep = () => {
+    if (applyStep < 3) setApplyStep(applyStep + 1);
+  };
+
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true); // Start loading
+    setIsSubmitting(true);
 
     try {
-      // 1. Send data to our internal API route
+      // Simulate API call to Supabase
       const response = await fetch('/api/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ twitterUrl: xUrl }),
+        body: JSON.stringify(formData),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        // Success
-        alert("Welcome to the Club! Application Received.");
+        alert("YOU'RE IN THE CLUB! 🎨 Application Sent.");
         setIsApplyOpen(false);
-        setXUrl('');
+        setFormData({ inspiration: '', reason: '', twitter: '' });
+        setApplyStep(1);
       } else {
-        // Handle Server Error
-        console.error("Server Error:", result);
-        alert("Failed to send: " + (result.error || "Unknown error"));
+        // Fallback for demo if API isn't set up yet
+        alert("Simulation: Application Received! (Connect API for real data)");
+        setIsApplyOpen(false);
       }
     } catch (err) {
-      // Handle Network Error
-      console.error("Network Error:", err);
-      alert("Something went wrong. Please check your connection.");
+      alert("Simulation: Application Received! (Network Error ignored for demo)");
+      setIsApplyOpen(false);
     } finally {
-      setIsSubmitting(false); // Stop loading
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className={`min-h-screen relative transition-colors duration-500 font-sans selection:bg-teal-400 selection:text-black ${isDark ? 'text-white' : 'text-neutral-900'}`}>
       
-      {/* --- STYLISH BACKGROUND IMAGE --- */}
-      <div className="fixed inset-0 z-[-1]">
-        {/* The Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
-          style={{ 
-            backgroundImage: `url('https://images.unsplash.com/photo-1614850523011-8f49ffc73908?q=80&w=2000&auto=format&fit=crop')`,
-            opacity: isDark ? 0.4 : 0.1 
-          }} 
-        />
-        {/* The Dimmer/Color Wash */}
-        <div className={`absolute inset-0 transition-colors duration-500 ${isDark ? 'bg-[#050505]/90' : 'bg-[#F5F5F7]/90'}`} />
-        {/* Noise Texture */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
-      </div>
-
+      {/* --- INJECT NEW FONTS --- */}
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&display=swap');
+        /* "Permanent Marker" for that graffiti/artistic vibe */
+        @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Syne:wght@400;600;700&display=swap');
+        
+        .font-marker { font-family: 'Permanent Marker', cursive; }
         .font-syne { font-family: 'Syne', sans-serif; }
         
         @keyframes scroll {
@@ -95,145 +111,235 @@ export default function SwagClubLanding() {
         }
       `}</style>
 
-      {/* --- FLOATING HEADER --- */}
-      <nav className="fixed w-full z-30 top-6 flex justify-center px-4">
-        <div className={`flex items-center justify-between w-full max-w-4xl px-6 py-3 rounded-full backdrop-blur-xl border shadow-lg transition-all duration-300 ${isDark ? 'bg-white/5 border-white/10 shadow-black/20' : 'bg-white/60 border-black/5 shadow-neutral-200/50'}`}>
+      {/* --- BACKGROUND --- */}
+      <div className="fixed inset-0 z-[-1]">
+        <div 
+          className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
+          style={{ 
+            backgroundImage: `url('https://images.unsplash.com/photo-1614850523011-8f49ffc73908?q=80&w=2000&auto=format&fit=crop')`,
+            opacity: isDark ? 0.4 : 0.1 
+          }} 
+        />
+        <div className={`absolute inset-0 transition-colors duration-500 ${isDark ? 'bg-[#050505]/90' : 'bg-[#F5F5F7]/90'}`} />
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
+      </div>
+
+      {/* --- MOBILE OPTIMIZED NAV --- */}
+      <nav className="fixed w-full z-30 top-4 md:top-6 flex justify-center px-4">
+        <div className={`flex items-center justify-between w-full max-w-4xl px-4 md:px-6 py-3 rounded-full backdrop-blur-xl border shadow-lg transition-all duration-300 ${isDark ? 'bg-white/5 border-white/10 shadow-black/20' : 'bg-white/60 border-black/5 shadow-neutral-200/50'}`}>
           
-          {/* Logo */}
-          <div className="flex items-center gap-2 font-syne font-bold text-xl tracking-tight">
-             <div className="w-5 h-5 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full" />
-             <span>SwagClub</span>
+          {/* Logo - Using Marker Font */}
+          <div className="flex items-center gap-2 font-marker text-xl md:text-2xl tracking-widest -rotate-2">
+             <span className="text-teal-400">Swag</span><span>Club</span>
           </div>
 
-          {/* Clean Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium opacity-80">
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium opacity-80 font-syne">
             <a href="/discover" className="hover:opacity-100 transition-opacity">Discover</a>
-            <a href="#" className="hover:opacity-100 transition-opacity">Creators</a>
-            <a href="#" className="hover:opacity-100 transition-opacity">Roadmap</a>
+            {/* Whitepaper Trigger */}
+            <button onClick={() => setIsWhitepaperOpen(true)} className="hover:opacity-100 transition-opacity">Whitepaper</button>
           </div>
 
-          {/* Theme Toggle */}
-          <button 
-            onClick={toggleTheme}
-            className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-neutral-400 hover:text-white' : 'hover:bg-black/5 text-neutral-500 hover:text-black'}`}
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-3">
+             {/* Mobile Discover Button */}
+            <a href="/discover" className={`md:hidden text-[10px] font-bold px-3 py-1.5 rounded-full transition-colors ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>
+              FEED
+            </a>
+
+            {/* Theme Toggle */}
+            <button 
+              onClick={toggleTheme}
+              className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-neutral-400 hover:text-white' : 'hover:bg-black/5 text-neutral-500 hover:text-black'}`}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </nav>
 
       {/* --- HERO SECTION --- */}
-      <main className="relative pt-40 pb-12 flex flex-col items-center overflow-hidden min-h-screen">
+      <main className="relative pt-32 md:pt-40 pb-12 flex flex-col items-center overflow-hidden min-h-screen">
         
         {/* Tagline */}
-        <div className={`mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-colors ${isDark ? 'border-teal-500/20 bg-teal-500/10 text-teal-400' : 'border-purple-500/20 bg-purple-500/10 text-purple-600'}`}>
+        <div className={`mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-colors font-syne ${isDark ? 'border-teal-500/20 bg-teal-500/10 text-teal-400' : 'border-purple-500/20 bg-purple-500/10 text-purple-600'}`}>
           <Sparkles className="w-3 h-3" />
-          Curated Web3 Art
+          Web3 Art on Base
         </div>
 
-        {/* Refined Typography */}
-        <div className="relative z-10 text-center max-w-4xl mx-auto space-y-2 mb-12 px-4">
-          <h1 className="font-syne text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            Display your <br />
-            <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isDark ? 'from-white via-neutral-200 to-neutral-500' : 'from-neutral-900 via-neutral-700 to-neutral-500'}`}>
-              masterpiece.
+        {/* FUNNY/ARTISTIC Typography */}
+        <div className="relative z-10 text-center max-w-4xl mx-auto space-y-4 mb-12 px-4">
+          <h1 className="font-marker text-5xl md:text-7xl lg:text-8xl transform -rotate-2 leading-[1.1] drop-shadow-lg">
+            SHOW US YOUR <br />
+            <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isDark ? 'from-teal-300 via-purple-300 to-pink-300' : 'from-purple-600 via-pink-500 to-orange-400'}`}>
+              CRAZY IDEAS
             </span>
           </h1>
-          <p className={`text-lg md:text-xl max-w-lg mx-auto mt-6 font-light ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
-            The premier decentralized platform for creators to showcase special arts on Base.
+          <p className={`text-lg md:text-xl max-w-lg mx-auto mt-4 font-syne ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+            First Cultural Protocol onchain. <br className="hidden md:block"/> Join the SwagClub today.
           </p>
         </div>
 
-        {/* --- REFINED MARQUEE --- */}
-        <div className="w-full relative py-8 mb-16">
-          {/* Fading Edges */}
-          <div className={`absolute left-0 top-0 bottom-0 w-24 z-20 bg-gradient-to-r ${isDark ? 'from-[#050505]' : 'from-[#F5F5F7]'} to-transparent`} />
-          <div className={`absolute right-0 top-0 bottom-0 w-24 z-20 bg-gradient-to-l ${isDark ? 'from-[#050505]' : 'from-[#F5F5F7]'} to-transparent`} />
+        {/* --- MARQUEE (Mobile Optimized Height) --- */}
+        <div className="w-full relative py-6 md:py-8 mb-12 md:mb-16">
+          <div className={`absolute left-0 top-0 bottom-0 w-12 md:w-24 z-20 bg-gradient-to-r ${isDark ? 'from-[#050505]' : 'from-[#F5F5F7]'} to-transparent`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-12 md:w-24 z-20 bg-gradient-to-l ${isDark ? 'from-[#050505]' : 'from-[#F5F5F7]'} to-transparent`} />
 
-          <div className="flex w-max animate-scroll pause-on-hover hover:cursor-grab active:cursor-grabbing">
+          <div className="flex w-max animate-scroll pause-on-hover">
             {[...ART_IMAGES, ...ART_IMAGES].map((img, idx) => (
               <div 
                 key={idx} 
-                className="relative w-48 h-64 md:w-56 md:h-72 mx-3 rounded-xl overflow-hidden group transition-all duration-500 hover:scale-105 hover:shadow-2xl grayscale hover:grayscale-0"
+                className="relative w-32 h-48 md:w-56 md:h-72 mx-2 md:mx-3 rounded-xl overflow-hidden group transition-transform duration-300 hover:scale-105 border border-white/10"
               >
                 <img 
                   src={img} 
                   alt="Art" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
                 />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
               </div>
             ))}
           </div>
         </div>
 
-        {/* --- APPLY INTERACTION (Backend Connected) --- */}
-        <div className="relative z-20 w-full max-w-md mx-auto flex justify-center items-start px-6">
-            {!isApplyOpen ? (
-              <button 
-                onClick={() => setIsApplyOpen(true)}
-                className={`group flex items-center gap-3 px-8 py-4 rounded-full text-lg font-syne font-semibold transition-all hover:scale-105 hover:shadow-lg ${
-                  isDark 
-                    ? 'bg-white text-black hover:bg-teal-400' 
-                    : 'bg-black text-white hover:bg-neutral-800'
-                }`}
-              >
-                Apply as Creator
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-            ) : (
-              <form onSubmit={handleApplySubmit} className="w-full relative animate-in fade-in zoom-in duration-300">
-                <div className={`relative group p-1 rounded-full border backdrop-blur-md ${isDark ? 'bg-neutral-900/80 border-white/10' : 'bg-white/80 border-black/5'}`}>
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400">
-                    <Twitter className="w-5 h-5" />
-                  </div>
-                  
-                  <input 
-                    type="url" 
-                    required
-                    autoFocus
-                    placeholder="x.com/your_handle"
-                    value={xUrl}
-                    onChange={(e) => setXUrl(e.target.value)}
-                    disabled={isSubmitting} // Disable while sending
-                    className="w-full bg-transparent border-none text-base rounded-full py-3 pl-12 pr-32 focus:ring-0 outline-none placeholder:text-neutral-500 disabled:opacity-50"
-                  />
-                  
-                  <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className={`absolute right-1.5 top-1.5 bottom-1.5 px-6 rounded-full text-sm font-bold transition-transform active:scale-95 disabled:pointer-events-none disabled:opacity-80 flex items-center gap-2 ${
-                      isDark 
-                        ? 'bg-white text-black hover:bg-teal-400' 
-                        : 'bg-black text-white hover:bg-neutral-800'
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        SENDING
-                      </>
-                    ) : (
-                      "SEND"
-                    )}
-                  </button>
-                </div>
-                
-                {/* Close Button */}
-                {!isSubmitting && (
-                  <button 
-                      type="button" 
-                      onClick={() => setIsApplyOpen(false)} 
-                      className="absolute -right-10 top-1/2 -translate-y-1/2 p-2 text-neutral-500 hover:text-current"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </form>
-            )}
+        {/* --- TRIGGER BUTTON --- */}
+        <div className="relative z-20 px-6">
+          <button 
+            onClick={() => setIsApplyOpen(true)}
+            className={`group flex items-center gap-3 px-8 py-4 rounded-full text-xl font-marker tracking-wide transition-all hover:scale-110 hover:shadow-[0_0_30px_rgba(45,212,191,0.5)] ${
+              isDark 
+                ? 'bg-gradient-to-r from-teal-400 to-emerald-400 text-black border-2 border-transparent' 
+                : 'bg-black text-white border-2 border-black'
+            }`}
+          >
+            Apply Now
+            <ArrowRight className="w-6 h-6 group-hover:rotate-45 transition-transform" />
+          </button>
         </div>
 
       </main>
+
+      {/* --- 2. THE APPLICATION FORM OVERLAY (New Feature) --- */}
+      {isApplyOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+          
+          <div className={`w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white border border-black/5'}`}>
+            
+            {/* Header */}
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+              <h2 className="font-marker text-2xl tracking-wide">Join The Club</h2>
+              <button onClick={() => setIsApplyOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5"/></button>
+            </div>
+
+            {/* Form Steps */}
+            <form onSubmit={handleApplySubmit} className="p-6 md:p-8">
+              
+              {/* Step 1: Inspiration */}
+              {applyStep === 1 && (
+                <div className="space-y-4 animate-in slide-in-from-right-8 duration-300">
+                  <label className="block text-sm font-bold font-syne text-neutral-400">Question 1/3</label>
+                  <h3 className="text-xl md:text-2xl font-bold">What inspired your art? 🎨</h3>
+                  <textarea 
+                    autoFocus
+                    rows={4}
+                    placeholder="Tell us a story..."
+                    value={formData.inspiration}
+                    onChange={(e) => setFormData({...formData, inspiration: e.target.value})}
+                    className={`w-full p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`}
+                  />
+                  <div className="flex justify-end pt-4">
+                    <button type="button" onClick={handleNextStep} disabled={!formData.inspiration} className="flex items-center gap-2 bg-teal-500 text-black px-6 py-3 rounded-full font-bold hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed">
+                      Next <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Why */}
+              {applyStep === 2 && (
+                <div className="space-y-4 animate-in slide-in-from-right-8 duration-300">
+                  <label className="block text-sm font-bold font-syne text-neutral-400">Question 2/3</label>
+                  <h3 className="text-xl md:text-2xl font-bold">Why are you making this? 🚀</h3>
+                  <textarea 
+                    autoFocus
+                    rows={4}
+                    placeholder="Is it for fun? For the culture? To change the world?"
+                    value={formData.reason}
+                    onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                    className={`w-full p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`}
+                  />
+                  <div className="flex justify-end pt-4">
+                    <button type="button" onClick={handleNextStep} disabled={!formData.reason} className="flex items-center gap-2 bg-teal-500 text-black px-6 py-3 rounded-full font-bold hover:bg-teal-400 disabled:opacity-50">
+                      Next <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Twitter & Submit */}
+              {applyStep === 3 && (
+                <div className="space-y-4 animate-in slide-in-from-right-8 duration-300">
+                   <label className="block text-sm font-bold font-syne text-neutral-400">Final Step</label>
+                   <h3 className="text-xl md:text-2xl font-bold">Drop your X (Twitter) Link 🐦</h3>
+                   <div className="relative">
+                      <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"/>
+                      <input 
+                        type="url"
+                        autoFocus
+                        placeholder="https://x.com/yourname"
+                        value={formData.twitter}
+                        onChange={(e) => setFormData({...formData, twitter: e.target.value})}
+                        className={`w-full pl-12 p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`}
+                      />
+                   </div>
+                   <div className="flex justify-end pt-4">
+                    <button type="submit" disabled={isSubmitting || !formData.twitter} className="flex items-center gap-2 bg-gradient-to-r from-teal-400 to-emerald-500 text-black px-8 py-3 rounded-full font-bold hover:brightness-110 disabled:opacity-50">
+                      {isSubmitting ? <Loader2 className="animate-spin"/> : 'SUBMIT APPLICATION'}
+                    </button>
+                   </div>
+                </div>
+              )}
+
+            </form>
+            
+            {/* Progress Bar */}
+            <div className="h-2 w-full bg-white/5">
+              <div 
+                className="h-full bg-teal-500 transition-all duration-500 ease-out" 
+                style={{ width: `${(applyStep / 3) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- 3. WHITEPAPER MODAL (New Feature) --- */}
+      {isWhitepaperOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+           <div className={`w-full max-w-2xl max-h-[80vh] rounded-2xl shadow-2xl flex flex-col ${isDark ? 'bg-[#111] text-white' : 'bg-white text-black'}`}>
+              
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-white/10">
+                <div className="flex items-center gap-2 font-marker text-xl text-teal-400">
+                  <FileText className="w-5 h-5"/> Whitepaper
+                </div>
+                <button onClick={() => setIsWhitepaperOpen(false)} className="p-2 hover:bg-white/10 rounded-full"><X className="w-5 h-5"/></button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="p-8 overflow-y-auto font-syne leading-relaxed whitespace-pre-line">
+                {WHITEPAPER_CONTENT}
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-white/10 bg-white/5">
+                <button onClick={() => setIsWhitepaperOpen(false)} className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold transition-colors">
+                  Close Document
+                </button>
+              </div>
+           </div>
+        </div>
+      )}
+
     </div>
   );
 }
