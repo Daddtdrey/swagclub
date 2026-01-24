@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js'; 
 import { ArrowRight, X, Moon, Sun, Loader2, FileText, Monitor, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
 
 /* --- SUPABASE CONFIG --- */
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -61,7 +62,6 @@ For the Community: Participants are not just speculators; they fund creators thr
 `;
 
 export default function SwagClubLanding() {
-  // --- STATE ---
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,8 +80,8 @@ export default function SwagClubLanding() {
       const { error } = await supabase
         .from('creator_applications')
         .insert([{ 
-            inspiration: "", // Sending empty string since we removed the question
-            reason: "",      // Sending empty string 
+            inspiration: "", 
+            reason: "",      
             twitter_handle: twitterHandle,
             status: 'pending'
         }]);
@@ -131,21 +131,22 @@ export default function SwagClubLanding() {
 
       {/* NAV */}
       <nav className="fixed w-full z-30 top-4 md:top-6 flex justify-center px-4">
-        <div className={`flex items-center justify-between w-full max-w-4xl px-4 md:px-6 py-3 rounded-full backdrop-blur-xl border shadow-lg transition-all duration-300 ${isDark ? 'bg-white/5 border-white/10 shadow-black/20' : 'bg-white/60 border-black/5 shadow-neutral-200/50'}`}>
-          <div className="flex items-center gap-2 font-syne font-bold text-xl md:text-2xl tracking-tighter">
-             <div className="w-5 h-5 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full" />
+        <div className={`flex items-center justify-between w-full max-w-4xl px-6 py-4 rounded-full backdrop-blur-xl border shadow-lg transition-all duration-300 ${isDark ? 'bg-white/5 border-white/10 shadow-black/20' : 'bg-white/60 border-black/5 shadow-neutral-200/50'}`}>
+          <div className="flex items-center gap-3 font-syne font-bold text-xl md:text-2xl tracking-tighter">
+             {/* --- CUSTOM LOGO --- */}
+             <img src="/logo.png" alt="SwagClub" className="w-10 h-10 object-contain rounded-full" />
              <span>SwagClub</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium opacity-80 font-syne">
-            <a href="/discover" className="hover:opacity-100 transition-opacity">Discover</a>
+            <Link href="/discover" className="hover:opacity-100 transition-opacity">Discover</Link>
             <button onClick={() => setIsWhitepaperOpen(true)} className="hover:opacity-100 transition-opacity">Whitepaper</button>
           </div>
 
           <div className="flex items-center gap-3">
-            <a href="/discover" className={`md:hidden text-[10px] font-bold px-3 py-1.5 rounded-full transition-colors ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>
+            <Link href="/discover" className={`md:hidden text-[10px] font-bold px-3 py-1.5 rounded-full transition-colors ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>
               DISCOVER
-            </a>
+            </Link>
             <button onClick={toggleTheme} className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-neutral-400 hover:text-white' : 'hover:bg-black/5 text-neutral-500 hover:text-black'}`}>
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
@@ -191,7 +192,7 @@ export default function SwagClubLanding() {
         </div>
       </main>
 
-      {/* --- SINGLE STEP APPLICATION FORM --- */}
+      {/* --- FORM --- */}
       {isApplyOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className={`w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white border border-black/5'}`}>
