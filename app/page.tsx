@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js'; 
-import { ArrowRight, X, Moon, Sun, Loader2, FileText, ChevronRight, Monitor, Sparkles } from 'lucide-react';
+import { ArrowRight, X, Moon, Sun, Loader2, FileText, Monitor, CheckCircle2 } from 'lucide-react';
 
 /* --- SUPABASE CONFIG --- */
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -24,32 +24,53 @@ const ART_IMAGES = [
 ];
 
 const WHITEPAPER_CONTENT = `
-SwagClub Whitepaper (v1.0)
-1. The Vision: SwagClub is a cultural movement on Base.
-2. The Tech: Built on Next.js, powered by Base, secured by Ethereum.
-3. The Goal: Curated, high-end cultural drops.
+SWAG CLUB: Cultural Commerce Protocol & Marketplace
+Abstract & Vision SWAG CLUB is a protocol designed to correct a structural imbalance in the creative economy: while communities produce culture, value is often captured elsewhere. SWAG CLUB bridges onchain coordination with real-world cultural products (physical art, design, and experiences). It moves beyond short-term speculation to create sustainable economic rails for funding, manufacturing, and distributing creativity.
+
+1. The Problem: Failure of Current Models Existing Web3 creative models are insufficient:
+
+Onchain Art (e.g., Zora): Solves permissionless minting but fails "post-mint." Art becomes idle in wallets, lacking real-world distribution or experiential value.
+
+Creator Coins: Financialize attention before productizing culture. This creates misaligned incentives where fans speculate rather than participate, and creators face sell pressure disconnected from their actual output.
+
+2. The SWAG CLUB Thesis Culture should be funded collectively, experienced physically, and monetized sustainably. Instead of selling promises or purely digital assets, SWAG CLUB focuses on tangible outcomes such as:
+
+Decor art and collectibles.
+
+Toys and design objects.
+
+Limited fashion/merchandise.
+
+In-person experiences (raves, pop-ups).
+
+3. Core Architecture SWAG CLUB functions as a gamified marketplace powered by a decentralized community, consisting of three main pillars:
+
+The Marketplace: A platform where users fund products, trade access rights, and participate in curation. Unlike traditional NFT markets, value here is anchored to real-world fulfillment.
+
+The Onchain Vault: Represents pooled ownership of physical assets. It handles asset custody, tracking, and transparency regarding production and inventory.
+
+Decentralized Crowdfunding (DAO): The governance layer that selects projects and oversees manufacturing, logistics, and IP usage. Funding is raised specifically via "product vault ticket bids."
+
+4. Gamification To transform support from passive consumption into active engagement, the protocol introduces game mechanics, including curation challenges, vault performance dynamics, and arbitrage opportunities between physical value and onchain representation.
+
+5. Incentive Structure
+
+For Creatives: They gain access to funding without surrendering autonomy. The protocol provides infrastructure for real-world distribution, manufacturing, and shared IP upside, focusing on exposure and revenue rather than ownership extraction.
+
+For the Community: Participants are not just speculators; they fund creators through DAO raises, gain shared upside from successful products, and hold governance rights over vaults and IP.
 `;
 
 export default function SwagClubLanding() {
   // --- STATE ---
   const [isApplyOpen, setIsApplyOpen] = useState(false);
-  const [applyStep, setApplyStep] = useState(1); // 1 = Inspiration, 2 = Reason, 3 = Twitter
-  const [formData, setFormData] = useState({ inspiration: '', reason: '', twitter: '' });
+  const [twitterHandle, setTwitterHandle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  
   const [isWhitepaperOpen, setIsWhitepaperOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
 
   const toggleTheme = () => setIsDark(!isDark);
-
-  // --- LOGIC ---
-  const handleOpenForm = () => {
-    setApplyStep(1); // ALWAYS reset to step 1 when opening
-    setIsApplyOpen(true);
-  };
-
-  const handleNextStep = () => {
-    if (applyStep < 3) setApplyStep(prev => prev + 1);
-  };
 
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,18 +80,20 @@ export default function SwagClubLanding() {
       const { error } = await supabase
         .from('creator_applications')
         .insert([{ 
-            inspiration: formData.inspiration,
-            reason: formData.reason, 
-            twitter_handle: formData.twitter,
+            inspiration: "", // Sending empty string since we removed the question
+            reason: "",      // Sending empty string 
+            twitter_handle: twitterHandle,
             status: 'pending'
         }]);
 
       if (error) throw error;
 
-      alert("Application Saved! We will contact you.");
-      setIsApplyOpen(false);
-      setFormData({ inspiration: '', reason: '', twitter: '' });
-      setApplyStep(1);
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsApplyOpen(false);
+        setIsSuccess(false);
+        setTwitterHandle('');
+      }, 2000);
 
     } catch (err: any) {
       console.error(err);
@@ -161,116 +184,56 @@ export default function SwagClubLanding() {
 
         {/* CTA BUTTON */}
         <div className="relative z-20 px-6">
-          <button onClick={handleOpenForm} className={`group flex items-center gap-3 px-8 py-4 rounded-full text-lg font-syne font-bold transition-all hover:scale-105 hover:shadow-lg ${isDark ? 'bg-white text-black hover:bg-teal-400' : 'bg-black text-white hover:bg-neutral-800'}`}>
+          <button onClick={() => setIsApplyOpen(true)} className={`group flex items-center gap-3 px-8 py-4 rounded-full text-lg font-syne font-bold transition-all hover:scale-105 hover:shadow-lg ${isDark ? 'bg-white text-black hover:bg-teal-400' : 'bg-black text-white hover:bg-neutral-800'}`}>
             Apply Now
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </main>
 
-      {/* --- MULTI-STEP APPLICATION FORM --- */}
+      {/* --- SINGLE STEP APPLICATION FORM --- */}
       {isApplyOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className={`w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white border border-black/5'}`}>
             
             <div className="p-6 border-b border-white/5 flex justify-between items-center">
-              <h2 className="font-syne font-bold text-xl">Creator Application</h2>
+              <h2 className="font-syne font-bold text-xl">Join the Club</h2>
               <button onClick={() => setIsApplyOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5"/></button>
             </div>
             
-            <form onSubmit={handleApplySubmit} className="p-6 md:p-8">
-              
-              {/* STEP 1: INSPIRATION */}
-              {applyStep === 1 && (
-                <div className="space-y-4 animate-in slide-in-from-right-8 duration-300">
-                  <div className="flex justify-between items-center">
-                     <label className="block text-sm font-bold font-syne text-neutral-400">Question 1/3</label>
-                     <span className="text-xs bg-teal-500/10 text-teal-400 px-2 py-1 rounded">Step 1</span>
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold font-syne">What inspired your art?</h3>
-                  <textarea 
-                    autoFocus 
-                    rows={4} 
-                    value={formData.inspiration} 
-                    onChange={(e) => setFormData({...formData, inspiration: e.target.value})} 
-                    className={`w-full p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`} 
-                    placeholder="Tell us the story..."
-                  />
-                  <div className="flex justify-end pt-4">
-                    <button 
-                        type="button" 
-                        onClick={handleNextStep} 
-                        disabled={!formData.inspiration} 
-                        className="flex items-center gap-2 bg-teal-500 text-black px-6 py-3 rounded-full font-bold hover:bg-teal-400 disabled:opacity-50"
-                    >
-                        Next <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+            {isSuccess ? (
+              <div className="p-12 text-center animate-in zoom-in">
+                 <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4"/>
+                 <h3 className="text-2xl font-bold font-syne mb-2">Received!</h3>
+                 <p className="text-neutral-500">We'll check out your profile shortly.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleApplySubmit} className="p-8">
+                  <div className="space-y-4">
+                     <label className="block text-sm font-bold font-syne text-neutral-400">Where can we see your work?</label>
+                     <h3 className="text-xl md:text-2xl font-bold font-syne">Drop your X (Twitter) Link</h3>
+                     
+                     <input 
+                      type="url" 
+                      autoFocus 
+                      value={twitterHandle} 
+                      onChange={(e) => setTwitterHandle(e.target.value)} 
+                      className={`w-full p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`} 
+                      placeholder="https://x.com/yourname"
+                     />
 
-              {/* STEP 2: REASON */}
-              {applyStep === 2 && (
-                <div className="space-y-4 animate-in slide-in-from-right-8 duration-300">
-                  <div className="flex justify-between items-center">
-                     <label className="block text-sm font-bold font-syne text-neutral-400">Question 2/3</label>
-                     <span className="text-xs bg-teal-500/10 text-teal-400 px-2 py-1 rounded">Step 2</span>
+                     <div className="pt-4">
+                      <button 
+                          type="submit" 
+                          disabled={isSubmitting || !twitterHandle} 
+                          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-400 to-emerald-500 text-black px-8 py-4 rounded-full font-bold hover:brightness-110 disabled:opacity-50 transition-all"
+                      >
+                        {isSubmitting ? <Loader2 className="animate-spin"/> : 'SUBMIT APPLICATION'}
+                      </button>
+                     </div>
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold font-syne">Why are you making this?</h3>
-                  <textarea 
-                    autoFocus 
-                    rows={4} 
-                    value={formData.reason} 
-                    onChange={(e) => setFormData({...formData, reason: e.target.value})} 
-                    className={`w-full p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`} 
-                    placeholder="What is the deeper meaning?"
-                  />
-                  <div className="flex justify-end pt-4">
-                    <button 
-                        type="button" 
-                        onClick={handleNextStep} 
-                        disabled={!formData.reason} 
-                        className="flex items-center gap-2 bg-teal-500 text-black px-6 py-3 rounded-full font-bold hover:bg-teal-400 disabled:opacity-50"
-                    >
-                        Next <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: TWITTER & SUBMIT */}
-              {applyStep === 3 && (
-                <div className="space-y-4 animate-in slide-in-from-right-8 duration-300">
-                   <div className="flex justify-between items-center">
-                     <label className="block text-sm font-bold font-syne text-neutral-400">Final Step</label>
-                     <span className="text-xs bg-teal-500/10 text-teal-400 px-2 py-1 rounded">Step 3</span>
-                   </div>
-                   <h3 className="text-xl md:text-2xl font-bold font-syne">Drop your X (Twitter) Link</h3>
-                   <input 
-                    type="url" 
-                    autoFocus 
-                    value={formData.twitter} 
-                    onChange={(e) => setFormData({...formData, twitter: e.target.value})} 
-                    className={`w-full p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`} 
-                    placeholder="https://x.com/yourname"
-                   />
-                   <div className="flex justify-end pt-4">
-                    <button 
-                        type="submit" 
-                        disabled={isSubmitting || !formData.twitter} 
-                        className="flex items-center gap-2 bg-gradient-to-r from-teal-400 to-emerald-500 text-black px-8 py-3 rounded-full font-bold hover:brightness-110 disabled:opacity-50"
-                    >
-                      {isSubmitting ? <Loader2 className="animate-spin"/> : 'SUBMIT APPLICATION'}
-                    </button>
-                   </div>
-                </div>
-              )}
-            </form>
-            
-            {/* PROGRESS BAR */}
-            <div className="h-2 w-full bg-white/5">
-                <div className="h-full bg-teal-500 transition-all duration-500 ease-out" style={{ width: `${(applyStep / 3) * 100}%` }} />
-            </div>
+              </form>
+            )}
           </div>
         </div>
       )}
