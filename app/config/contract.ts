@@ -1,15 +1,57 @@
-export const SWAG_CONTRACT_ADDRESS = "0xcE5BB9a519EB12BfA1816F196fc3beBbc13f6f26";
+// REPLACE THIS ADDRESS WITH YOUR NEW V2 DEPLOYMENT FROM REMIX
+export const SWAG_CONTRACT_ADDRESS = "0x0Ae49fa0B972583d9BAc23BD2f982de48A74E761"; 
 
 export const SWAG_CONTRACT_ABI = [
-  // 1. MINT
+  // 1. MINT ARTWORK
   {
-    "inputs": [{ "internalType": "string", "name": "tokenURI", "type": "string" }],
+    "inputs": [{ "internalType": "string", "name": "_tokenURI", "type": "string" }],
     "name": "mintArtwork",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "nonpayable",
     "type": "function"
   },
-  // 2. APPROVE (Added this!)
+  
+  // 2. START RAFFLE
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+      { "internalType": "uint256", "name": "price", "type": "uint256" },
+      { "internalType": "uint256", "name": "maxTickets", "type": "uint256" }
+    ],
+    "name": "startRaffle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+
+  // 3. BUY TICKET
+  {
+    "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+    "name": "buyTicket",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+
+  // 4. SELL TICKET (SWAP FOR LIQUIDITY - NEW IN V2)
+  {
+    "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+    "name": "sellTicket",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+
+  // 5. PICK WINNER
+  {
+    "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+    "name": "pickWinner",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+
+  // 6. APPROVE (For Admin Locking)
   {
     "inputs": [
       { "internalType": "address", "name": "to", "type": "address" },
@@ -20,47 +62,45 @@ export const SWAG_CONTRACT_ABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   },
-  // 3. START AUCTION
+
+  // 7. WITHDRAW ADMIN FUNDS
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-      { "internalType": "uint256", "name": "startingBid", "type": "uint256" },
-      { "internalType": "uint256", "name": "durationMinutes", "type": "uint256" }
-    ],
-    "name": "startAuction",
+    "inputs": [],
+    "name": "withdrawEarnings",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
-  // 4. PLACE BID
+
+  // 8. READ RAFFLE DETAILS
   {
     "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
-    "name": "placeBid",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  // 5. READ AUCTIONS
-  {
-    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "name": "auctions",
+    "name": "getRaffleDetails",
     "outputs": [
-      { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-      { "internalType": "address payable", "name": "seller", "type": "address" },
-      { "internalType": "uint256", "name": "minBid", "type": "uint256" },
-      { "internalType": "uint256", "name": "highestBid", "type": "uint256" },
-      { "internalType": "address payable", "name": "highestBidder", "type": "address" },
-      { "internalType": "uint256", "name": "endTime", "type": "uint256" },
-      { "internalType": "bool", "name": "active", "type": "bool" }
+      { "internalType": "uint256", "name": "", "type": "uint256" }, // Price
+      { "internalType": "uint256", "name": "", "type": "uint256" }, // Sold
+      { "internalType": "uint256", "name": "", "type": "uint256" }, // Max
+      { "internalType": "bool", "name": "", "type": "bool" },       // Active
+      { "internalType": "address", "name": "", "type": "address" }   // Winner
     ],
     "stateMutability": "view",
     "type": "function"
   },
-  // 6. READ LATEST TOKEN ID
+
+  // 9. READ TOTAL MINTED COUNT
   {
     "inputs": [],
     "name": "tokenIds",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+
+  // 10. READ IMAGE URL
+  {
+    "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+    "name": "tokenURI",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
     "stateMutability": "view",
     "type": "function"
   }

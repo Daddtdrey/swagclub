@@ -1,141 +1,140 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseEther } from 'viem';
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { parseEther, formatEther } from 'viem';
 import { SWAG_CONTRACT_ADDRESS, SWAG_CONTRACT_ABI } from '../config/contract';
-import { Loader2, Upload, Gavel, CheckCircle2, Lock } from 'lucide-react';
+import { Upload, Ticket, CheckCircle2, Wallet, Lock, Trophy, Loader2 } from 'lucide-react';
 
 export default function AdminPage() {
   const [tokenURI, setTokenURI] = useState('');
-  
-  // Auction Form State
-  const [tokenIdToAuction, setTokenIdToAuction] = useState('');
-  const [startPrice, setStartPrice] = useState('0.01');
-  const [duration, setDuration] = useState('60');
+  const [tokenId, setTokenId] = useState('');
+  const [ticketPrice, setTicketPrice] = useState('0.01');
+  const [maxTickets, setMaxTickets] = useState('100');
+  const [lastMintedId, setLastMintedId] = useState<string | null>(null);
 
   const { data: hash, writeContract, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash });
 
-  // 1. MINT FUNCTION
-  const handleMint = async (e: React.FormEvent) => {
-    e.preventDefault();
-    writeContract({
-      address: SWAG_CONTRACT_ADDRESS,
-      abi: SWAG_CONTRACT_ABI,
-      functionName: 'mintArtwork',
-      args: [tokenURI || "demo-nft"], // Fallback for testing
-    });
+  // Auto-fill Token ID after minting
+  useEffect(() => {
+    if (isSuccess && receipt && receipt.logs[0]) {
+       try {
+         const id = parseInt(receipt.logs[0].topics[3] as string, 16).toString();
+         setLastMintedId(id);
+         setTokenId(id);
+       } catch (e) {}
+    }
+  }, [isSuccess, receipt]);
+
+  // --- ACTIONS ---
+  const handleMint = () => {
+    writeContract({ address: SWAG_CONTRACT_ADDRESS, abi: SWAG_CONTRACT_ABI, functionName: 'mintArtwork', args: [tokenURI] });
   };
 
-  // 2. APPROVE FUNCTION (The Missing Step!)
-  const handleApprove = async (e: React.FormEvent) => {
-    e.preventDefault();
-    writeContract({
-      address: SWAG_CONTRACT_ADDRESS,
-      abi: SWAG_CONTRACT_ABI,
-      functionName: 'approve', // Standard ERC721 function
-      args: [SWAG_CONTRACT_ADDRESS, BigInt(tokenIdToAuction)],
-    });
+  const handleApprove = () => {
+    writeContract({ address: SWAG_CONTRACT_ADDRESS, abi: SWAG_CONTRACT_ABI, functionName: 'approve', args: [SWAG_CONTRACT_ADDRESS, BigInt(tokenId)] });
   };
 
-  // 3. START AUCTION FUNCTION
-  const handleStartAuction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    writeContract({
-      address: SWAG_CONTRACT_ADDRESS,
-      abi: SWAG_CONTRACT_ABI,
-      functionName: 'startAuction',
-      args: [BigInt(tokenIdToAuction), parseEther(startPrice), BigInt(duration)],
+  const handleStartRaffle = () => {
+    writeContract({ address: SWAG_CONTRACT_ADDRESS, abi: SWAG_CONTRACT_ABI, functionName: 'startRaffle', args: [BigInt(tokenId), parseEther(ticketPrice), BigInt(maxTickets)] });
+  };
+
+  const handlePickWinner = () => {
+    writeContract({ address: SWAG_CONTRACT_ADDRESS, abi: SWAG_CONTRACT_ABI, functionName: 'pickWinner', args: [BigInt(tokenId)] });
+  };
+
+  // NEW: WITHDRAW FUNCTION
+  const handleWithdraw = () => {
+    writeContract({ 
+      address: SWAG_CONTRACT_ADDRESS, 
+      abi: SWAG_CONTRACT_ABI, 
+      functionName: 'withdrawEarnings', 
+      args: [] 
     });
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <div className="max-w-2xl mx-auto space-y-12">
+    <div className="min-h-screen bg-[#050505] text-white p-8 font-sans selection:bg-purple-500 selection:text-white">
+      <div className="max-w-4xl mx-auto space-y-10">
+        
         <header className="flex justify-between items-center border-b border-white/10 pb-6">
-          <h1 className="text-3xl font-bold">Admin Dashboard 🛡️</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-2"><Lock className="w-8 h-8 text-teal-500"/> Admin Command</h1>
           <ConnectButton />
         </header>
 
-        {/* ERROR DISPLAY */}
+        {isSuccess && (
+          <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-xl flex items-center gap-3 text-green-400">
+            <CheckCircle2 className="w-5 h-5"/> 
+            <span className="font-bold">Transaction Successful!</span>
+            {lastMintedId && <span className="text-sm opacity-80">(Token ID #{lastMintedId})</span>}
+          </div>
+        )}
+        
         {error && (
-          <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-xl text-red-200 text-sm">
+          <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 text-sm break-all">
              Error: {error.message.split('\n')[0]}
           </div>
         )}
 
-        {/* SUCCESS DISPLAY */}
-        {isSuccess && (
-           <div className="p-4 bg-green-900/20 border border-green-500/50 text-green-200 rounded-xl text-center flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-5 h-5"/> Transaction Confirmed!
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* CARD 1: MINT */}
+            <div className="bg-[#111] p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all shadow-xl">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-purple-400"><Upload className="w-5 h-5"/> 1. Create Artifact</h2>
+              <div className="space-y-4">
+                 <input type="text" placeholder="Image URL (e.g. Unsplash/IPFS)" value={tokenURI} onChange={(e) => setTokenURI(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-xl outline-none focus:border-purple-500 transition-colors"/>
+                 <button onClick={handleMint} disabled={isPending} className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-purple-500 hover:text-white transition-all disabled:opacity-50">
+                    {isPending ? <Loader2 className="animate-spin mx-auto"/> : "Mint NFT"}
+                 </button>
+              </div>
+            </div>
+
+            {/* CARD 2: START RAFFLE */}
+            <div className="bg-[#111] p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all shadow-xl">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-teal-400"><Ticket className="w-5 h-5"/> 2. Launch Raffle</h2>
+              <div className="space-y-4">
+                <input type="number" placeholder="Token ID" value={tokenId} onChange={(e) => setTokenId(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"/>
+                <div className="grid grid-cols-2 gap-4">
+                   <input type="number" placeholder="Price (ETH)" value={ticketPrice} onChange={(e) => setTicketPrice(e.target.value)} className="bg-black border border-white/20 p-4 rounded-xl outline-none focus:border-teal-500"/>
+                   <input type="number" placeholder="Max Tickets" value={maxTickets} onChange={(e) => setMaxTickets(e.target.value)} className="bg-black border border-white/20 p-4 rounded-xl outline-none focus:border-teal-500"/>
+                </div>
+                <div className="flex gap-3 pt-2">
+                   <button onClick={handleApprove} disabled={isPending} className="flex-1 border border-white/20 hover:bg-white/10 py-3 rounded-xl font-bold transition-colors">Approve</button>
+                   <button onClick={handleStartRaffle} disabled={isPending} className="flex-[2] bg-teal-500 text-black font-bold py-3 rounded-xl hover:bg-teal-400 transition-colors shadow-lg shadow-teal-500/20">Start Live</button>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        {/* BOTTOM ROW: MANAGE & WITHDRAW */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+           
+           {/* CARD 3: PICK WINNER */}
+           <div className="bg-[#111] p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-yellow-500"><Trophy className="w-5 h-5"/> 3. End Raffle</h2>
+              <p className="text-neutral-500 text-sm mb-6">This will randomly select a winner from the pool and transfer the NFT to them.</p>
+              <div className="flex gap-4">
+                 <input type="number" placeholder="ID to End" value={tokenId} onChange={(e) => setTokenId(e.target.value)} className="w-24 bg-black border border-white/20 p-3 rounded-xl text-center"/>
+                 <button onClick={handlePickWinner} disabled={isPending} className="flex-1 bg-yellow-500 text-black font-bold py-3 rounded-xl hover:bg-yellow-400 shadow-lg shadow-yellow-500/20">
+                    Pick Random Winner
+                 </button>
+              </div>
            </div>
-        )}
 
-        {/* --- STEP 1: MINT --- */}
-        <section className="bg-white/5 p-6 rounded-2xl border border-white/10">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Upload className="w-5 h-5 text-teal-400"/> Step 1: Mint NFT</h2>
-          <form onSubmit={handleMint} className="space-y-4">
-            <div>
-              <label className="text-sm text-gray-400">Metadata URI</label>
-              <input 
-                type="text" 
-                placeholder="ipfs://... (or leave blank for demo)" 
-                value={tokenURI}
-                onChange={(e) => setTokenURI(e.target.value)}
-                className="w-full bg-black border border-gray-700 p-3 rounded-lg mt-1 outline-none focus:border-teal-500"
-              />
-            </div>
-            <button disabled={isPending || isConfirming} className="bg-teal-500 text-black px-6 py-3 rounded-lg font-bold w-full hover:bg-teal-400 disabled:opacity-50">
-              {isPending ? 'Check Wallet...' : isConfirming ? 'Minting...' : 'Mint Artwork'}
-            </button>
-          </form>
-        </section>
+           {/* CARD 4: TREASURY (NEW) */}
+           <div className="bg-[#111] p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-32 bg-green-500/5 rounded-full blur-3xl pointer-events-none"/>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-green-400"><Wallet className="w-5 h-5"/> 4. Treasury</h2>
+              <p className="text-neutral-500 text-sm mb-6">Withdraw all ETH collected from ticket sales to the admin wallet.</p>
+              
+              <button onClick={handleWithdraw} disabled={isPending} className="w-full border border-green-500/30 text-green-400 font-bold py-4 rounded-xl hover:bg-green-500 hover:text-black transition-all flex items-center justify-center gap-3">
+                 {isPending ? <Loader2 className="animate-spin"/> : <Wallet className="w-5 h-5"/>}
+                 Withdraw All Funds
+              </button>
+           </div>
 
-        {/* --- STEP 2: START AUCTION --- */}
-        <section className="bg-white/5 p-6 rounded-2xl border border-white/10">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Gavel className="w-5 h-5 text-purple-400"/> Step 2: Start Auction</h2>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-               <div>
-                  <label className="text-sm text-gray-400">Token ID</label>
-                  <input type="number" placeholder="e.g. 1" value={tokenIdToAuction} onChange={e => setTokenIdToAuction(e.target.value)} className="w-full bg-black border border-gray-700 p-3 rounded-lg mt-1 outline-none focus:border-purple-500"/>
-               </div>
-               <div>
-                  <label className="text-sm text-gray-400">Duration (Mins)</label>
-                  <input type="number" placeholder="60" value={duration} onChange={e => setDuration(e.target.value)} className="w-full bg-black border border-gray-700 p-3 rounded-lg mt-1 outline-none focus:border-purple-500"/>
-               </div>
-            </div>
-            <div>
-              <label className="text-sm text-gray-400">Start Price (ETH)</label>
-              <input type="number" step="0.001" placeholder="0.01" value={startPrice} onChange={e => setStartPrice(e.target.value)} className="w-full bg-black border border-gray-700 p-3 rounded-lg mt-1 outline-none focus:border-purple-500"/>
-            </div>
-
-            <div className="flex gap-4 pt-2">
-               {/* APPROVE BUTTON */}
-               <button 
-                 onClick={handleApprove}
-                 disabled={isPending || isConfirming || !tokenIdToAuction} 
-                 className="flex-1 bg-white/10 text-white px-6 py-3 rounded-lg font-bold hover:bg-white/20 disabled:opacity-50 border border-white/10 flex justify-center items-center gap-2"
-               >
-                 <Lock className="w-4 h-4"/> 
-                 {isPending ? 'Approving...' : '1. Approve Contract'}
-               </button>
-
-               {/* START BUTTON */}
-               <button 
-                 onClick={handleStartAuction}
-                 disabled={isPending || isConfirming || !tokenIdToAuction} 
-                 className="flex-[2] bg-purple-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-400 disabled:opacity-50"
-               >
-                 {isPending ? 'Confirming...' : '2. Start Auction'}
-               </button>
-            </div>
-            <p className="text-xs text-center text-gray-500 mt-2">Note: You must click "Approve" first, wait for success, then click "Start Auction".</p>
-          </div>
-        </section>
+        </div>
 
       </div>
     </div>
