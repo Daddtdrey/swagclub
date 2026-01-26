@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js'; 
-import { ArrowRight, X, Moon, Sun, Loader2, FileText, Monitor, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, X, Moon, Sun, Loader2, FileText, Monitor, CheckCircle2, Globe, TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 /* --- SUPABASE CONFIG --- */
@@ -10,7 +10,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* --- CONFIGURATION --- */
+/* --- ASSETS --- */
 const ART_IMAGES = [
   "https://res.cloudinary.com/dmsq7n9k6/image/upload/v1769279991/img1_front_ppzo7f.jpg",
   "https://res.cloudinary.com/dmsq7n9k6/image/upload/v1769279985/img_2_a748wg.jpg",
@@ -24,6 +24,7 @@ const ART_IMAGES = [
   "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=400&auto=format&fit=crop",
 ];
 
+/* --- WHITEPAPER CONTENT --- */
 const WHITEPAPER_CONTENT = `
 SWAG CLUB: Cultural Commerce Protocol & Marketplace
 Abstract & Vision SWAG CLUB is a protocol designed to correct a structural imbalance in the creative economy: while communities produce culture, value is often captured elsewhere. SWAG CLUB bridges onchain coordination with real-world cultural products (physical art, design, and experiences). It moves beyond short-term speculation to create sustainable economic rails for funding, manufacturing, and distributing creativity.
@@ -68,6 +69,7 @@ export default function SwagClubLanding() {
   const [isSuccess, setIsSuccess] = useState(false);
   
   const [isWhitepaperOpen, setIsWhitepaperOpen] = useState(false);
+  // Defaulting to Dark Mode for the premium look
   const [isDark, setIsDark] = useState(true);
 
   const toggleTheme = () => setIsDark(!isDark);
@@ -104,36 +106,43 @@ export default function SwagClubLanding() {
   };
 
   return (
-    <div className={`min-h-screen relative transition-colors duration-500 font-sans selection:bg-teal-400 selection:text-black ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+    <div className={`min-h-screen relative transition-colors duration-500 font-sans selection:bg-teal-400 selection:text-black ${isDark ? 'bg-[#050505] text-white' : 'bg-[#FAFAFA] text-neutral-900'}`}>
       
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap');
         .font-syne { font-family: 'Syne', sans-serif; }
-        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .animate-scroll { animation: scroll 40s linear infinite; }
+        
+        /* iOS-Optimized Infinite Scroll */
+        @keyframes scroll { 
+          0% { transform: translate3d(0, 0, 0); } 
+          100% { transform: translate3d(-50%, 0, 0); } 
+        }
+        .animate-scroll { 
+          animation: scroll 40s linear infinite; 
+          will-change: transform; /* Hint to browser for GPU acceleration */
+        }
         .pause-on-hover:hover { animation-play-state: paused; }
       `}</style>
       
       <MobileWarning />
 
       {/* BACKGROUND */}
-      <div className="fixed inset-0 z-[-1]">
+      <div className="fixed inset-0 z-0">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
           style={{ 
             backgroundImage: `url('https://images.unsplash.com/photo-1614850523011-8f49ffc73908?q=80&w=2000&auto=format&fit=crop')`,
-            opacity: isDark ? 0.4 : 0.1 
+            opacity: isDark ? 0.3 : 0.1 
           }} 
         />
         <div className={`absolute inset-0 transition-colors duration-500 ${isDark ? 'bg-[#050505]/90' : 'bg-[#F5F5F7]/90'}`} />
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay pointer-events-none"></div>
       </div>
 
       {/* NAV */}
       <nav className="fixed w-full z-30 top-4 md:top-6 flex justify-center px-4">
         <div className={`flex items-center justify-between w-full max-w-4xl px-6 py-4 rounded-full backdrop-blur-xl border shadow-lg transition-all duration-300 ${isDark ? 'bg-white/5 border-white/10 shadow-black/20' : 'bg-white/60 border-black/5 shadow-neutral-200/50'}`}>
           <div className="flex items-center gap-3 font-syne font-bold text-xl md:text-2xl tracking-tighter">
-             {/* --- CUSTOM LOGO --- */}
              <img src="/logo.png" alt="SwagClub" className="w-10 h-10 object-contain rounded-full" />
              <span>SwagClub</span>
           </div>
@@ -155,7 +164,7 @@ export default function SwagClubLanding() {
       </nav>
 
       {/* HERO */}
-      <main className="relative pt-32 md:pt-40 pb-12 flex flex-col items-center overflow-hidden min-h-screen">
+      <main className="relative pt-32 md:pt-40 pb-12 flex flex-col items-center overflow-hidden min-h-screen z-10">
         
         <div className="relative z-10 text-center max-w-4xl mx-auto space-y-4 mb-12 px-4">
           <h1 className="font-syne text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.1]">
@@ -169,30 +178,69 @@ export default function SwagClubLanding() {
           </p>
         </div>
 
-        {/* SCROLLING ART */}
-        <div className="w-full relative py-6 md:py-8 mb-12 md:mb-16">
+        {/* SCROLLING ART (iOS Optimized) */}
+        <div className="w-full relative py-6 md:py-8 mb-16 md:mb-24 overflow-hidden">
           <div className={`absolute left-0 top-0 bottom-0 w-12 md:w-24 z-20 bg-gradient-to-r ${isDark ? 'from-[#050505]' : 'from-[#F5F5F7]'} to-transparent`} />
           <div className={`absolute right-0 top-0 bottom-0 w-12 md:w-24 z-20 bg-gradient-to-l ${isDark ? 'from-[#050505]' : 'from-[#F5F5F7]'} to-transparent`} />
 
-          <div className="flex w-max animate-scroll pause-on-hover">
+          <div className="flex w-max animate-scroll pause-on-hover transform-gpu">
             {[...ART_IMAGES, ...ART_IMAGES].map((img, idx) => (
-              <div key={idx} className="relative w-32 h-48 md:w-56 md:h-72 mx-2 md:mx-3 rounded-xl overflow-hidden group transition-transform duration-300 hover:scale-105 border border-white/10">
+              <div key={idx} className="relative w-32 h-48 md:w-56 md:h-72 mx-2 md:mx-3 rounded-xl overflow-hidden group transition-transform duration-300 hover:scale-105 border border-white/10 shadow-2xl">
                 <img src={img} alt="Art" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
               </div>
             ))}
           </div>
         </div>
 
+        {/* --- FEATURES BENTO GRID --- */}
+        <section className="relative z-20 w-full max-w-5xl px-6 mb-24">
+           <div className="text-center mb-10">
+              <h2 className="font-syne text-2xl md:text-3xl font-bold">The SwagClub Advantage</h2>
+           </div>
+           
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Card 1: Distribution */}
+              <div className={`group p-8 md:p-10 rounded-[2.5rem] border transition-all duration-300 hover:scale-[1.01] overflow-hidden relative ${isDark ? 'bg-white/5 border-white/10 hover:border-teal-500/30' : 'bg-white border-neutral-200 shadow-xl'}`}>
+                 <div className="absolute top-0 right-0 p-24 bg-teal-500/10 rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none group-hover:bg-teal-500/20 transition-colors"></div>
+                 <div className="relative z-10">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-xl shadow-lg ${isDark ? 'bg-teal-500/20 text-teal-400' : 'bg-teal-100 text-teal-600'}`}>
+                       <Globe className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-3xl font-syne font-bold mb-3 leading-tight">Art pop up for <br/> distribution</h3>
+                    <p className={`text-base leading-relaxed ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                       Instant global reach. Distribute your cultural artifacts to a network of verified collectors on Base without the middleman.
+                    </p>
+                 </div>
+              </div>
+
+              {/* Card 2: Funding */}
+              <div className={`group p-8 md:p-10 rounded-[2.5rem] border transition-all duration-300 hover:scale-[1.01] overflow-hidden relative ${isDark ? 'bg-white/5 border-white/10 hover:border-purple-500/30' : 'bg-white border-neutral-200 shadow-xl'}`}>
+                 <div className="absolute top-0 right-0 p-24 bg-purple-500/10 rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
+                 <div className="relative z-10">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-xl shadow-lg ${isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+                       <TrendingUp className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-3xl font-syne font-bold mb-3 leading-tight">Funding for <br/> upcoming creators</h3>
+                    <p className={`text-base leading-relaxed ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                       Direct monetization. Launch your drop and secure immediate liquidity to fuel your next masterpiece.
+                    </p>
+                 </div>
+              </div>
+
+           </div>
+        </section>
+
         {/* CTA BUTTON */}
         <div className="relative z-20 px-6">
-          <button onClick={() => setIsApplyOpen(true)} className={`group flex items-center gap-3 px-8 py-4 rounded-full text-lg font-syne font-bold transition-all hover:scale-105 hover:shadow-lg ${isDark ? 'bg-white text-black hover:bg-teal-400' : 'bg-black text-white hover:bg-neutral-800'}`}>
+          <button onClick={() => setIsApplyOpen(true)} className={`group flex items-center gap-3 px-10 py-5 rounded-full text-xl font-syne font-bold transition-all hover:scale-105 hover:shadow-2xl hover:shadow-teal-500/20 ${isDark ? 'bg-white text-black hover:bg-teal-400' : 'bg-black text-white hover:bg-neutral-800'}`}>
             Apply Now
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </main>
 
-      {/* --- FORM --- */}
+      {/* --- APPLICATION FORM --- */}
       {isApplyOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className={`w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white border border-black/5'}`}>
@@ -239,16 +287,24 @@ export default function SwagClubLanding() {
         </div>
       )}
 
+      {/* --- WHITEPAPER MODAL (Updated) --- */}
       {isWhitepaperOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-           <div className={`w-full max-w-2xl max-h-[80vh] rounded-2xl shadow-2xl flex flex-col ${isDark ? 'bg-[#111] text-white' : 'bg-white text-black'}`}>
-              <div className="flex items-center justify-between p-6 border-b border-white/10">
-                <div className="flex items-center gap-2 font-syne font-bold text-xl text-teal-400"><FileText className="w-5 h-5"/> Whitepaper</div>
-                <button onClick={() => setIsWhitepaperOpen(false)} className="p-2 hover:bg-white/10 rounded-full"><X className="w-5 h-5"/></button>
+           <div className={`w-full max-w-2xl max-h-[85vh] rounded-[30px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 ${isDark ? 'bg-[#0a0a0a] border border-white/10 text-white' : 'bg-white text-black'}`}>
+              
+              <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
+                <div className="flex items-center gap-2 font-syne font-bold text-xl text-teal-400">
+                    <FileText className="w-5 h-5"/> Whitepaper <span className="text-xs bg-white/10 text-white px-2 py-0.5 rounded">v3.0</span>
+                </div>
+                <button onClick={() => setIsWhitepaperOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5"/></button>
               </div>
-              <div className="p-8 overflow-y-auto font-syne leading-relaxed whitespace-pre-line">{WHITEPAPER_CONTENT}</div>
-              <div className="p-6 border-t border-white/10 bg-white/5">
-                <button onClick={() => setIsWhitepaperOpen(false)} className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold transition-colors">Close Document</button>
+              
+              <div className="p-8 overflow-y-auto font-syne leading-relaxed whitespace-pre-line text-lg opacity-90 custom-scrollbar">
+                  {WHITEPAPER_CONTENT}
+              </div>
+              
+              <div className="p-6 border-t border-white/10 bg-white/5 flex gap-4">
+                <button onClick={() => setIsWhitepaperOpen(false)} className="w-full py-4 rounded-xl bg-white text-black font-bold hover:bg-neutral-200 transition-colors">Close Document</button>
               </div>
            </div>
         </div>

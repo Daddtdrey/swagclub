@@ -2,16 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { parseEther, formatEther } from 'viem';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { parseEther } from 'viem';
 import { SWAG_CONTRACT_ADDRESS, SWAG_CONTRACT_ABI } from '../config/contract';
-import { Upload, Ticket, CheckCircle2, Wallet, Lock, Trophy, Loader2 } from 'lucide-react';
+import { Upload, Ticket, CheckCircle2, Wallet, Lock, Trophy, Loader2, Users } from 'lucide-react';
 
 export default function AdminPage() {
   const [tokenURI, setTokenURI] = useState('');
   const [tokenId, setTokenId] = useState('');
   const [ticketPrice, setTicketPrice] = useState('0.01');
   const [maxTickets, setMaxTickets] = useState('100');
+  const [winnerCount, setWinnerCount] = useState('1'); // NEW: How many winners?
   const [lastMintedId, setLastMintedId] = useState<string | null>(null);
 
   const { data: hash, writeContract, isPending, error } = useWriteContract();
@@ -41,18 +42,18 @@ export default function AdminPage() {
     writeContract({ address: SWAG_CONTRACT_ADDRESS, abi: SWAG_CONTRACT_ABI, functionName: 'startRaffle', args: [BigInt(tokenId), parseEther(ticketPrice), BigInt(maxTickets)] });
   };
 
-  const handlePickWinner = () => {
-    writeContract({ address: SWAG_CONTRACT_ADDRESS, abi: SWAG_CONTRACT_ABI, functionName: 'pickWinner', args: [BigInt(tokenId)] });
-  };
-
-  // NEW: WITHDRAW FUNCTION
-  const handleWithdraw = () => {
+  // UPDATED: Now calls 'pickWinners' (plural) with 2 arguments
+  const handlePickWinners = () => {
     writeContract({ 
       address: SWAG_CONTRACT_ADDRESS, 
       abi: SWAG_CONTRACT_ABI, 
-      functionName: 'withdrawEarnings', 
-      args: [] 
+      functionName: 'pickWinners', 
+      args: [BigInt(tokenId), BigInt(winnerCount)] 
     });
+  };
+
+  const handleWithdraw = () => {
+    writeContract({ address: SWAG_CONTRACT_ADDRESS, abi: SWAG_CONTRACT_ABI, functionName: 'withdrawEarnings', args: [] });
   };
 
   return (
@@ -60,7 +61,7 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto space-y-10">
         
         <header className="flex justify-between items-center border-b border-white/10 pb-6">
-          <h1 className="text-3xl font-bold flex items-center gap-2"><Lock className="w-8 h-8 text-teal-500"/> Admin Command</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-2"><Lock className="w-8 h-8 text-teal-500"/> Admin Command <span className="text-xs bg-teal-500 text-black px-2 rounded">V3</span></h1>
           <ConnectButton />
         </header>
 
@@ -110,19 +111,27 @@ export default function AdminPage() {
         {/* BOTTOM ROW: MANAGE & WITHDRAW */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
            
-           {/* CARD 3: PICK WINNER */}
+           {/* CARD 3: PICK WINNERS (UPDATED FOR MULTI-WINNER) */}
            <div className="bg-[#111] p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-yellow-500"><Trophy className="w-5 h-5"/> 3. End Raffle</h2>
-              <p className="text-neutral-500 text-sm mb-6">This will randomly select a winner from the pool and transfer the NFT to them.</p>
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-yellow-500"><Trophy className="w-5 h-5"/> 3. Draw Winners</h2>
+              <p className="text-neutral-500 text-sm mb-6">Select the Token ID and how many winners to draw (1st gets NFT, others are Runners Up).</p>
+              
               <div className="flex gap-4">
-                 <input type="number" placeholder="ID to End" value={tokenId} onChange={(e) => setTokenId(e.target.value)} className="w-24 bg-black border border-white/20 p-3 rounded-xl text-center"/>
-                 <button onClick={handlePickWinner} disabled={isPending} className="flex-1 bg-yellow-500 text-black font-bold py-3 rounded-xl hover:bg-yellow-400 shadow-lg shadow-yellow-500/20">
-                    Pick Random Winner
+                 <div className="w-24">
+                    <label className="text-xs text-neutral-500 mb-1 block">Token ID</label>
+                    <input type="number" placeholder="#" value={tokenId} onChange={(e) => setTokenId(e.target.value)} className="w-full bg-black border border-white/20 p-3 rounded-xl text-center"/>
+                 </div>
+                 <div className="w-24">
+                    <label className="text-xs text-neutral-500 mb-1 block">Winners</label>
+                    <input type="number" value={winnerCount} onChange={(e) => setWinnerCount(e.target.value)} className="w-full bg-black border border-white/20 p-3 rounded-xl text-center"/>
+                 </div>
+                 <button onClick={handlePickWinners} disabled={isPending} className="flex-1 mt-auto bg-yellow-500 text-black font-bold py-3 rounded-xl hover:bg-yellow-400 shadow-lg shadow-yellow-500/20 h-[50px]">
+                    Draw
                  </button>
               </div>
            </div>
 
-           {/* CARD 4: TREASURY (NEW) */}
+           {/* CARD 4: TREASURY */}
            <div className="bg-[#111] p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all relative overflow-hidden">
               <div className="absolute top-0 right-0 p-32 bg-green-500/5 rounded-full blur-3xl pointer-events-none"/>
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-green-400"><Wallet className="w-5 h-5"/> 4. Treasury</h2>
