@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js'; 
-import { ArrowRight, X, Moon, Sun, Loader2, FileText, Monitor, CheckCircle2, Globe, TrendingUp, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, X, Moon, Sun, Loader2, FileText, Monitor, CheckCircle2, Globe, TrendingUp, User, Store, Package } from 'lucide-react';
 import Link from 'next/link';
 
 /* --- SUPABASE CONFIG --- */
@@ -10,7 +10,6 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* --- ASSETS --- */
 const ART_IMAGES = [
   "https://res.cloudinary.com/dmsq7n9k6/image/upload/v1769279991/img1_front_ppzo7f.jpg",
   "https://res.cloudinary.com/dmsq7n9k6/image/upload/v1769279985/img_2_a748wg.jpg",
@@ -24,12 +23,12 @@ const ART_IMAGES = [
   "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=400&auto=format&fit=crop",
 ];
 
-/* --- WHITEPAPER CONTENT --- */
 const WHITEPAPER_CONTENT = `
 SWAG CLUB: Cultural Commerce Protocol & Marketplace
 Abstract & Vision SWAG CLUB is a protocol designed to correct a structural imbalance in the creative economy: while communities produce culture, value is often captured elsewhere. SWAG CLUB bridges onchain coordination with real-world cultural products (physical art, design, and experiences). It moves beyond short-term speculation to create sustainable economic rails for funding, manufacturing, and distributing creativity.
 
-1. The Problem: Failure of Current Models Existing Web3 creative models are insufficient:
+1. The Problem: 
+ Failure of Current Models Existing Web3 creative models are insufficient:
 
 Onchain Art (e.g., Zora): Solves permissionless minting but fails "post-mint." Art becomes idle in wallets, lacking real-world distribution or experiential value.
 
@@ -37,13 +36,13 @@ Creator Coins: Financialize attention before productizing culture. This creates 
 
 2. The SWAG CLUB Thesis Culture should be funded collectively, experienced physically, and monetized sustainably. Instead of selling promises or purely digital assets, SWAG CLUB focuses on tangible outcomes such as:
 
-Decor art and collectibles.
+  Decor art and collectibles.
 
-Toys and design objects.
+  Toys and design objects.
 
-Limited fashion/merchandise.
+  Limited fashion/merchandise.
 
-In-person experiences (raves, pop-ups).
+  In-person experiences (raves, pop-ups).
 
 3. Core Architecture SWAG CLUB functions as a gamified marketplace powered by a decentralized community, consisting of three main pillars:
 
@@ -63,18 +62,18 @@ For the Community: Participants are not just speculators; they fund creators thr
 `;
 
 export default function SwagClubLanding() {
-  const [isApplyOpen, setIsApplyOpen] = useState(false);
+  const [isPartnerOpen, setIsPartnerOpen] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState('');
+  const [partnerType, setPartnerType] = useState(''); // NEW: 3 Choices
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   
   const [isWhitepaperOpen, setIsWhitepaperOpen] = useState(false);
-  // Defaulting to Dark Mode for the premium look
   const [isDark, setIsDark] = useState(true);
 
   const toggleTheme = () => setIsDark(!isDark);
 
-  const handleApplySubmit = async (e: React.FormEvent) => {
+  const handlePartnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -82,9 +81,8 @@ export default function SwagClubLanding() {
       const { error } = await supabase
         .from('creator_applications')
         .insert([{ 
-            inspiration: "", 
-            reason: "",      
             twitter_handle: twitterHandle,
+            reason: partnerType, // Storing "Individual/Brand/Product" here
             status: 'pending'
         }]);
 
@@ -92,9 +90,10 @@ export default function SwagClubLanding() {
 
       setIsSuccess(true);
       setTimeout(() => {
-        setIsApplyOpen(false);
+        setIsPartnerOpen(false);
         setIsSuccess(false);
         setTwitterHandle('');
+        setPartnerType('');
       }, 2000);
 
     } catch (err: any) {
@@ -119,7 +118,7 @@ export default function SwagClubLanding() {
         }
         .animate-scroll { 
           animation: scroll 40s linear infinite; 
-          will-change: transform; /* Hint to browser for GPU acceleration */
+          will-change: transform; 
         }
         .pause-on-hover:hover { animation-play-state: paused; }
       `}</style>
@@ -174,7 +173,7 @@ export default function SwagClubLanding() {
             </span>
           </h1>
           <p className={`text-lg md:text-xl max-w-lg mx-auto mt-6 font-light ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
-            The premier decentralized platform for creators to showcase special arts on Base.
+            The premier decentralized protocol for creators to showcase special arts on Base.
           </p>
         </div>
 
@@ -231,78 +230,93 @@ export default function SwagClubLanding() {
            </div>
         </section>
 
-        {/* CTA BUTTON */}
-        <div className="relative z-20 px-6">
-          <button onClick={() => setIsApplyOpen(true)} className={`group flex items-center gap-3 px-10 py-5 rounded-full text-xl font-syne font-bold transition-all hover:scale-105 hover:shadow-2xl hover:shadow-teal-500/20 ${isDark ? 'bg-white text-black hover:bg-teal-400' : 'bg-black text-white hover:bg-neutral-800'}`}>
-            Apply Now
+        {/* PARTNER CTA BUTTON */}
+        <div className="relative z-20 px-6 pb-12">
+          <button onClick={() => setIsPartnerOpen(true)} className={`group flex items-center gap-3 px-10 py-5 rounded-full text-xl font-syne font-bold transition-all hover:scale-105 hover:shadow-2xl hover:shadow-teal-500/20 ${isDark ? 'bg-white text-black hover:bg-teal-400' : 'bg-black text-white hover:bg-neutral-800'}`}>
+            Partner With Us
             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </main>
 
-      {/* --- APPLICATION FORM --- */}
-      {isApplyOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className={`w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white border border-black/5'}`}>
-            
-            <div className="p-6 border-b border-white/5 flex justify-between items-center">
-              <h2 className="font-syne font-bold text-xl">Join the Club</h2>
-              <button onClick={() => setIsApplyOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5"/></button>
-            </div>
-            
-            {isSuccess ? (
-              <div className="p-12 text-center animate-in zoom-in">
+      {/* --- MODAL: PARTNER FORM --- */}
+      {isPartnerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className={`w-full max-w-lg rounded-3xl shadow-2xl p-8 relative overflow-hidden animate-in zoom-in-95 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white'}`}>
+             <button onClick={() => setIsPartnerOpen(false)} className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full"><X className="w-5 h-5"/></button>
+             
+             {isSuccess ? (
+               <div className="text-center py-10">
                  <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4"/>
-                 <h3 className="text-2xl font-bold font-syne mb-2">Received!</h3>
-                 <p className="text-neutral-500">We'll check out your profile shortly.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleApplySubmit} className="p-8">
-                  <div className="space-y-4">
-                     <label className="block text-sm font-bold font-syne text-neutral-400">Where can we see your work?</label>
-                     <h3 className="text-xl md:text-2xl font-bold font-syne">Drop your X (Twitter) Link</h3>
-                     
-                     <input 
+                 <h3 className="text-2xl font-bold font-syne">Received!</h3>
+                 <p className="text-neutral-500 mt-2">We'll review your {partnerType} profile.</p>
+               </div>
+             ) : (
+               <form onSubmit={handlePartnerSubmit}>
+                  <h3 className="text-2xl font-bold font-syne mb-6">Become a Partner</h3>
+                  
+                  {/* STEP 1: PARTNER TYPE */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-bold font-syne text-neutral-400 mb-3">1. What type of partner are you?</label>
+                    <div className="grid grid-cols-1 gap-3">
+                        {['Individual Artist', 'Art Brand', 'Physical Product'].map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setPartnerType(type)}
+                            className={`p-4 rounded-xl text-left border transition-all flex items-center gap-3 font-bold
+                              ${partnerType === type 
+                                ? 'bg-teal-500/20 border-teal-500 text-teal-400' 
+                                : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10'}
+                            `}
+                          >
+                             {type === 'Individual Artist' && <User className="w-5 h-5"/>}
+                             {type === 'Art Brand' && <Store className="w-5 h-5"/>}
+                             {type === 'Physical Product' && <Package className="w-5 h-5"/>}
+                             {type}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* STEP 2: TWITTER */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-bold font-syne text-neutral-400 mb-3">2. Submit X (Twitter) Profile</label>
+                    <input 
                       type="url" 
-                      autoFocus 
                       value={twitterHandle} 
                       onChange={(e) => setTwitterHandle(e.target.value)} 
                       className={`w-full p-4 rounded-xl text-lg outline-none focus:ring-2 focus:ring-teal-500 transition-all ${isDark ? 'bg-white/5' : 'bg-neutral-100'}`} 
                       placeholder="https://x.com/yourname"
-                     />
-
-                     <div className="pt-4">
-                      <button 
-                          type="submit" 
-                          disabled={isSubmitting || !twitterHandle} 
-                          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-400 to-emerald-500 text-black px-8 py-4 rounded-full font-bold hover:brightness-110 disabled:opacity-50 transition-all"
-                      >
-                        {isSubmitting ? <Loader2 className="animate-spin"/> : 'SUBMIT APPLICATION'}
-                      </button>
-                     </div>
+                    />
                   </div>
-              </form>
-            )}
+
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting || !twitterHandle || !partnerType} 
+                    className="w-full py-4 bg-teal-500 text-black font-bold rounded-xl hover:bg-teal-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? <Loader2 className="animate-spin mx-auto"/> : 'SUBMIT APPLICATION'}
+                  </button>
+               </form>
+             )}
           </div>
         </div>
       )}
 
-      {/* --- WHITEPAPER MODAL (Updated) --- */}
+      {/* --- WHITEPAPER MODAL --- */}
       {isWhitepaperOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
            <div className={`w-full max-w-2xl max-h-[85vh] rounded-[30px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 ${isDark ? 'bg-[#0a0a0a] border border-white/10 text-white' : 'bg-white text-black'}`}>
-              
               <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
                 <div className="flex items-center gap-2 font-syne font-bold text-xl text-teal-400">
-                    <FileText className="w-5 h-5"/> Whitepaper <span className="text-xs bg-white/10 text-white px-2 py-0.5 rounded">v3.0</span>
+                    <FileText className="w-5 h-5"/> Whitepaper <span className="text-xs bg-white/10 text-white px-2 py-0.5 rounded">v4.0</span>
                 </div>
                 <button onClick={() => setIsWhitepaperOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5"/></button>
               </div>
-              
-              <div className="p-8 overflow-y-auto font-syne leading-relaxed whitespace-pre-line text-lg opacity-90 custom-scrollbar">
+              <div className="p-8 overflow-y-auto font-syne leading-relaxed whitespace-pre-line text-lg opacity-90">
                   {WHITEPAPER_CONTENT}
               </div>
-              
               <div className="p-6 border-t border-white/10 bg-white/5 flex gap-4">
                 <button onClick={() => setIsWhitepaperOpen(false)} className="w-full py-4 rounded-xl bg-white text-black font-bold hover:bg-neutral-200 transition-colors">Close Document</button>
               </div>
